@@ -1,0 +1,79 @@
+@version=5
+strategy(Dev - Positional Trading System with Fair Value Gap, Demand & Supply Zones v25, overlay=true)
+
+ Input for risk-reward ratio
+riskRewardRatio = input(2, title=Risk-Reward Ratio)
+
+ Input for stop loss percentage
+stopLossPercent = input(1, title=Stop Loss Percentage)
+
+ Input for take profit percentage
+takeProfitPercent = input(2, title=Take Profit Percentage)
+
+ Input for fair value gap
+fairValueGapPercent = input(1, title=Fair Value Gap Percentage)
+
+ Input for demand zone condition
+demandZoneCondition = input(true, title=Demand Zone)
+
+ Input for supply zone condition
+supplyZoneCondition = input(true, title=Supply Zone)
+
+ Calculate stop loss and take profit levels
+stopLossLevel = close  (1 - stopLossPercent  100)
+takeProfitLevel = close  (1 + takeProfitPercent  100)
+
+ Calculate fair value levels
+fairValue = ta.sma(close, 50)
+fairValueGap = fairValue  (fairValueGapPercent  100)
+
+ Long condition
+longCondition = ta.crossover(close, fairValue + fairValueGap) and demandZoneCondition
+
+ Short condition
+shortCondition = ta.crossunder(close, fairValue - fairValueGap) and supplyZoneCondition
+
+ Execute long trade
+strategy.entry(Long, strategy.long, when=longCondition)
+
+ Execute short trade
+strategy.entry(Short, strategy.short, when=shortCondition)
+
+ Exit conditions
+strategy.exit(Take ProfitStop Loss, from_entry=Long, loss=stopLossLevel, profit=takeProfitLevel)
+strategy.exit(Take ProfitStop Loss, from_entry=Short, loss=stopLossLevel, profit=takeProfitLevel)
+
+ Plot stop loss and take profit levels on the chart
+plot(stopLossLevel, color=color.red, title=Stop Loss)
+plot(takeProfitLevel, color=color.green, title=Take Profit)
+
+ Plot Fair Value Gap
+plot(fairValue + fairValueGap, color=color.blue, title=Fair Value Upper Bound)
+plot(fairValue - fairValueGap, color=color.blue, title=Fair Value Lower Bound)
+
+ Plot Demand Zone
+bgcolor(demandZoneCondition  color.new(color.green, 90)  na, transp=0)
+
+ Plot Supply Zone
+bgcolor(supplyZoneCondition  color.new(color.red, 90)  na, transp=0)
+
+ Label signals
+var labelLong = label.new(na, na, )
+var labelShort = label.new(na, na, )
+var labelTakeProfit = label.new(na, na, )
+var labelStopLoss = label.new(na, na, )
+
+label.set_xy(labelLong, bar_index, low)
+label.set_xy(labelShort, bar_index, high)
+label.set_xy(labelTakeProfit, bar_index, takeProfitLevel)
+label.set_xy(labelStopLoss, bar_index, stopLossLevel)
+
+label.set_text(labelLong, longCondition  Buy Signal  )
+label.set_text(labelShort, shortCondition  Sell Signal  )
+label.set_text(labelTakeProfit, (longCondition or shortCondition)  Take Profit  )
+label.set_text(labelStopLoss, (longCondition or shortCondition)  Stop Loss  )
+
+label.set_color(labelLong, color.green)
+label.set_color(labelShort, color.red)
+label.set_color(labelTakeProfit, color.green)
+label.set_color(labelStopLoss, color.red)
