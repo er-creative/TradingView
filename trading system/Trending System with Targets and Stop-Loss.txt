@@ -1,0 +1,44 @@
+//@version=5
+strategy("Trending System with Target and Stop-Loss [Dev V8]", overlay=true)
+
+// Input parameters
+fastLength = input(9, title="Fast Length")
+slowLength = input(21, title="Slow Length")
+stopLossPercent = input(1, title="Stop Loss (%)") / 100
+takeProfitPercent = input(2, title="Take Profit (%)") / 100
+
+// Calculate moving averages
+fastEMA = ta.ema(close, fastLength)
+slowEMA = ta.ema(close, slowLength)
+
+// Plot moving averages on the chart
+plot(fastEMA, color=color.blue, title="Fast EMA")
+plot(slowEMA, color=color.red, title="Slow EMA")
+
+// Define entry conditions
+enterLong = ta.crossover(fastEMA, slowEMA)
+enterShort = ta.crossunder(fastEMA, slowEMA)
+
+// Implement stop loss and take profit
+stopLossLevelLong = close * (1 - stopLossPercent)
+takeProfitLevelLong = close * (1 + takeProfitPercent)
+stopLossLevelShort = close * (1 + stopLossPercent)
+takeProfitLevelShort = close * (1 - takeProfitPercent)
+
+// Execute trades
+strategy.entry("Long", strategy.long, when=enterLong)
+strategy.entry("Short", strategy.short, when=enterShort)
+
+// Set stop loss and take profit
+strategy.exit("Long", from_entry="Long", loss=stopLossLevelLong, profit=takeProfitLevelLong)
+strategy.exit("Short", from_entry="Short", loss=stopLossLevelShort, profit=takeProfitLevelShort)
+
+// Plot explicit buy and sell signals on the chart
+plotshape(series=enterLong, title="Buy Signal", color=color.green, style=shape.triangleup, location=location.belowbar)
+plotshape(series=enterShort, title="Sell Signal", color=color.red, style=shape.triangledown, location=location.abovebar)
+
+// Plot target and stop-loss levels
+plotshape(series=enterLong, title="Target Long", color=color.green, style=shape.triangleup, location=location.abovebar, offset=-1)
+plotshape(series=enterShort, title="Target Short", color=color.red, style=shape.triangledown, location=location.belowbar, offset=-1)
+plotshape(series=enterLong, title="Stop Loss Long", color=color.red, style=shape.triangledown, location=location.belowbar, offset=-1)
+plotshape(series=enterShort, title="Stop Loss Short", color=color.green, style=shape.triangleup, location=location.abovebar, offset=-1)
