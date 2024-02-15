@@ -1,0 +1,1 @@
+1. Trend change indicator should be used for 4hr and 1hr timeframe 
